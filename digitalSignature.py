@@ -18,13 +18,17 @@ class DigitalSignatureApp:
         self.button = ctk.CTkButton(self.root, text="Create signature", command=self.process_text)
         self.button.place(x=85, y=153)
 
-        self.output_text = ctk.CTkTextbox(self.root, width=290, height=250)  # Увеличил размер поля вывода
+        self.output_text = ctk.CTkTextbox(self.root, width=290, height=130)
         self.output_text.place(x=5, y=200)
 
     def hash_text(self, text):
-        import hashlib
-        hashed_text = hashlib.sha256(text.encode()).hexdigest().upper()
-        return hashed_text
+        hash_value = sum(ord(char) for char in text)
+        hex_digits = "0123456789ABCDEF"
+        hex_str = ""
+        while hash_value > 0:
+            hex_str = hex_digits[hash_value % 16] + hex_str
+            hash_value = hash_value // 16
+        return hex_str
 
     def generate_keys(self):
         primes = [59, 73, 83, 113, 127, 151, 169, 187, 193, 211, 223, 241, 259, 269, 289, 301, 319, 331, 337, 353, 367, 383, 389, 401, 409, 421, 431, 433, 443, 449, 461, 463, 467, 479, 487, 503, 541, 547, 557, 569, 571, 577, 587, 593, 601, 613, 617, 619, 631, 641, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859]
@@ -53,17 +57,13 @@ class DigitalSignatureApp:
 
     def process_text(self):
         text = self.input_field.get("1.0", "end-1c")
-        if not text:
-            messagebox.showerror('Error', 'The input field must be filled!')
-            return
-
         open_key, secret_key = self.generate_keys()
         hashed_text = self.hash_text(text)
         signature = self.sign_text(text, secret_key)
         decrypted_hash = hex(pow(signature, open_key[0], open_key[1]))[2:].upper()
 
         self.output_text.delete('1.0', 'end')
-        self.output_text.insert('end', f"Hashed text: {hashed_text}\n")
+        self.output_text.insert('1.0', f"Hashed text: {hashed_text}\n")
         self.output_text.insert('end', f"Open key: {open_key}\n")
         self.output_text.insert('end', f"Secret key: {secret_key}\n")
         self.output_text.insert('end', f"Signature: {signature}\n")
